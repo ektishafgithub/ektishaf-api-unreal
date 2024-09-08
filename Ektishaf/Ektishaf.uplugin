@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Ektishaf",
+	"Description": "",
+	"Category": "Other",
+	"CreatedBy": "Ektishaf Ahwaz",
+	"CreatedByURL": "https://www.ektishaf.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Ektishaf",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
