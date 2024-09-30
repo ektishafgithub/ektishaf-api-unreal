@@ -6,7 +6,7 @@
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "EktishafSubsystem.generated.h"
 
-DECLARE_DELEGATE_TwoParams(FEktishafOnResponseFast, bool, const FString);
+DECLARE_DELEGATE_FourParams(FEktishafOnResponseFast, bool, const TArray<uint8>, const FString, TSharedPtr<FJsonObject>);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FEktishafOnResponse, bool, success, const FString, content);
 
 const FString HostUrl = "https://api.ektishaf.com/v1";
@@ -22,7 +22,7 @@ const FString SignUrl = HostUrl + "/sign";
 const FString VerifyUrl = HostUrl + "/verify";
 
 static FString ConnectedAddress;
-static FString Ticket;
+static FString CurrentTicket;
 
 UCLASS(MinimalAPI)
 class UEktishafSubsystem : public UEngineSubsystem
@@ -33,47 +33,50 @@ class UEktishafSubsystem : public UEngineSubsystem
 	virtual void Deinitialize();
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const;
 
-	EKTISHAF_API void SendRequest(FString _url, FString _verb, FString _payload, FString ticket, TFunctionRef<void(bool, const TArray<uint8>, const FString, FEktishafOnResponseFast, TSharedPtr<FJsonObject>)> _function, FEktishafOnResponseFast _callback);
-	EKTISHAF_API void SendRequest(FString _url, FString _verb, FString _payload, FString ticket, TFunctionRef<void(bool, const TArray<uint8>, const FString, FEktishafOnResponse, TSharedPtr<FJsonObject>)> _function, FEktishafOnResponse _callback);
-	
-EKTISHAF_API void Host(FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Register(FString password, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Login(FString ticket, FString password, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void External(FString privateKey, FString password, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Reveal(FString ticket, FString password, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Sign(FString ticket, FString message, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Verify(FString address, FString message, FString signature, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Balance(FString rpc, FString ticket, FEktishafOnResponseFast Callback);
-public:EKTISHAF_API void ABI(FString abi, bool minimal, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Read(FString rpc, FString ticket, FString contract, FString abi, FString function, TArray<TSharedPtr<FJsonValue>> args, FEktishafOnResponseFast Callback);
-	EKTISHAF_API void Write(FString rpc, FString ticket, FString contract, FString abi, FString function, TArray<TSharedPtr<FJsonValue>> args, FEktishafOnResponseFast Callback);
+public:
+
+	EKTISHAF_API void SendRequest(const FEktishafOnResponseFast& Callback, const FString Url = HostUrl, const FString Payload = "", const FString Ticket = "", const FString Verb = "GET");
+	EKTISHAF_API void GetRequest(const FEktishafOnResponseFast& Callback, const FString Url = HostUrl);
+	EKTISHAF_API void PostRequest(const FEktishafOnResponseFast& Callback, const FString Url, const FString Payload = "", const FString Ticket = "");
+
+	EKTISHAF_API void Host(const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Register(const FString Password, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Login(const FString Ticket, const FString Password, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void External(const FString PrivateKey, const FString Password, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Reveal(const FString Ticket, const FString Password, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Sign(const FString Ticket, const FString Message, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Verify(const FString Address, const FString Message, const FString Signature, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Balance(const FString Rpc, const FString Ticket, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void ABI(const FString Abi, const bool Minimal, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Read(const FString Rpc, const FString Ticket, const FString Contract, const FString Abi, const FString Function, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Write(const FString Rpc, const FString Ticket, const FString Contract, const FString Abi, const FString Function, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Host", Category = "Ektishaf")
-	EKTISHAF_API void K2_Host(FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Host(const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Register", Category = "Ektishaf")
-	EKTISHAF_API void K2_Register(FString password, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Register(const FString Password, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Login", Category = "Ektishaf")
-	EKTISHAF_API void K2_Login(FString ticket, FString password, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Login(const FString Ticket, FString Password, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="External", Category = "Ektishaf")
-	EKTISHAF_API void K2_External(FString privateKey, FString password, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_External(const FString PrivateKey, FString Password, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Reveal", Category = "Ektishaf")
-	EKTISHAF_API void K2_Reveal(FString ticket, FString password, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Reveal(const FString Ticket, FString Password, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Sign", Category = "Ektishaf")
-	EKTISHAF_API void K2_Sign(FString ticket, FString message, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Sign(const FString Ticket, FString message, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Verify", Category = "Ektishaf")
-	EKTISHAF_API void K2_Verify(FString address, FString message, FString signature, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Verify(const FString Address, FString Message, FString Signature, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Balance", Category = "Ektishaf")
-	EKTISHAF_API void K2_Balance(FString rpc, FString ticket, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_Balance(const FString Rpc, FString Ticket, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="ABI", Category = "Ektishaf")
-	EKTISHAF_API void K2_ABI(FString abi, bool minimal, FEktishafOnResponse Callback);
+	EKTISHAF_API void K2_ABI(const FString Abi, bool Minimal, const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="ConnectedAddress", Category = "Ektishaf")
 	EKTISHAF_API FString K2_ConnectedAddress();

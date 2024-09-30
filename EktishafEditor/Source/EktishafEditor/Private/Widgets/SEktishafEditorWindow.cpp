@@ -194,7 +194,7 @@ FReply SEktishafEditorWindow::OnGenerateButtonClicked()
 	EktishafSubsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>();
 	if (EktishafSubsystem)
 	{
-		EktishafSubsystem->ABI(ABIEditableTextBox->GetText().ToString(), true, FEktishafOnResponseFast::CreateLambda([this](bool success, const FString content) 
+		EktishafSubsystem->ABI(ABIEditableTextBox->GetText().ToString(), true, FEktishafOnResponseFast::CreateLambda([this](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject>) 
 		{
 				if(success)
 				{
