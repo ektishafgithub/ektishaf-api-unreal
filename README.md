@@ -25,7 +25,7 @@ Welcome to Ektishaf Unreal API!.<br/>
 Please read below to install the API plugin and have an understanding of the core functionalities to start right away.
 <br/><br/>
 
-### Prerequisites! 👋
+### Prerequisites
 Unreal Version: 5+
 <br/><br/>
 
