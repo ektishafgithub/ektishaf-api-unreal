@@ -45,6 +45,7 @@ public class EktishafEditor : ModuleRules
 				"SlateCore",
                 "Ektishaf",
                 "HTTP",
+				"Json",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -12,7 +12,7 @@
 #include <Engine/Engine.h>
 #include <Misc/MessageDialog.h>
 #include <Widgets/SWindow.h>
-#include <../../../../../Plugins/Ektishaf/Source/Ektishaf//Public/EktishafSubsystem.h>
+#include "EktishafSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "LocalizedText"
 
@@ -194,22 +194,24 @@ FReply SEktishafEditorWindow::OnGenerateButtonClicked()
 	EktishafSubsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>();
 	if (EktishafSubsystem)
 	{
-		EktishafSubsystem->ABI(ABIEditableTextBox->GetText().ToString(), true, FEktishafOnResponseFast::CreateLambda([this](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject>) 
+		EktishafSubsystem->ABI(ABIEditableTextBox->GetText().ToString(), true, FEktishafOnResponseFast::CreateLambda([this](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject) 
 		{
+				
 				if(success)
 				{
-					FString SavePathDir = FPaths::ProjectDir() + "EktishafGenerated/Contracts";
-					FString SavePath = SavePathDir + "/" + FileNameEditableTextBox->GetText().ToString() + "_" + ContractAddressEditableTextBox->GetText().ToString() + ".json";
+					FString SavePathDir = FPaths::ProjectPluginsDir() + "Ektishaf/Source/Ektishaf/Public/Contracts";
+					FString SavePath = SavePathDir + "/" + FileNameEditableTextBox->GetText().ToString() + ".h";
+
 					IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 					if (!PlatformFile.DirectoryExists(*SavePathDir))
 					{
-						PlatformFile.CreateDirectory(*SavePath);
+						PlatformFile.CreateDirectory(*SavePathDir);
 					}
-					FFileHelper::SaveStringToFile(content, *SavePath);
+					GenerateABI(content, ABIEditableTextBox->GetText().ToString(), ContractAddressEditableTextBox->GetText().ToString(), SavePath);
 
 					const FText Title = Localize("UserInfo", "User Information");
 					const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Contract interface saved at path: %s"), *SavePath));
-					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, &Title);
+					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
 					if (UserSelection == EAppReturnType::Ok)
 					{
 						WindowManager::Get().GetWindow()->BringToFront();
@@ -219,7 +221,7 @@ FReply SEktishafEditorWindow::OnGenerateButtonClicked()
 				{
 					const FText Title = Localize("UserInfo", "User Information");
 					const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Something went wrong: %s"), *content));
-					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, &Title);
+					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
 					if (UserSelection == EAppReturnType::Ok)
 					{
 						WindowManager::Get().GetWindow()->BringToFront();
@@ -230,9 +232,69 @@ FReply SEktishafEditorWindow::OnGenerateButtonClicked()
 	return FReply::Handled();
 }
 
-void SEktishafEditorWindow::OnABI(bool success, const FString content)
+void SEktishafEditorWindow::GenerateABI(FString HBI, FString ABI, FString Address, FString FileName)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *content);
+	TArray<TSharedPtr<FJsonValue>> ValueArray;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(HBI);
+	if(FJsonSerializer::Deserialize(Reader, ValueArray))
+	{ 
+		TMap<FString, FString> dictionary;
+		for (int32 i = 1; i < ValueArray.Num(); i++)
+		{
+			FString raw = ValueArray[i]->AsString();
+
+			int32 argStartIndex = raw.Find("(", ESearchCase::IgnoreCase, ESearchDir::FromStart, 0);
+			int32 argEndIndex = raw.Find(")", ESearchCase::IgnoreCase, ESearchDir::FromStart, argStartIndex + 1);
+			FString rawArgs = raw.Mid(argStartIndex, (argEndIndex + 1) - argStartIndex);
+			FString lineWithoutReturn = raw;
+			lineWithoutReturn.RemoveAt(argEndIndex + 1, raw.Len() - (argEndIndex + 1));
+
+			FString args = rawArgs.TrimChar('(').TrimChar(')');
+			int numOfArgs = 0;
+			FString a = "";
+			if (!args.IsEmpty())
+			{
+				TArray<FString> splits;
+				args.ParseIntoArray(splits, TEXT(","), true);
+				numOfArgs = splits.Num();
+
+				for (int32 j = 0; j < numOfArgs; j++)
+				{
+					FString split = splits[j];
+					TArray<FString> argSplits;
+					split.ParseIntoArray(argSplits, TEXT(" "), false);
+					if (argSplits.Num() > 1)
+					{
+						split = argSplits[0];
+					}
+					a += split.Replace(TEXT("[]"), TEXT("Array"), ESearchCase::IgnoreCase);
+					if (j < numOfArgs - 1) a += "_";
+				}
+			}
+
+			FString lineWithoutArgs = raw.Replace(*rawArgs, TEXT(""), ESearchCase::IgnoreCase);
+			lineWithoutArgs = lineWithoutArgs.TrimChar(',');
+			lineWithoutArgs = lineWithoutArgs.TrimQuotes();
+
+			TArray<FString> elements;
+			lineWithoutArgs.ParseIntoArray(elements, TEXT(" "), true);
+			FString functionName = elements[1];
+			FString dump = FString::Printf(TEXT("%s_%d_%s"), *functionName, numOfArgs, *a);
+			dictionary.Add(dump, raw);
+
+			FString code = FString::Printf(TEXT("namespace %s\n"), *FPaths::GetBaseFilename(FileName));
+			code = code.Append("{\n");
+			for (const auto& entry : dictionary)
+			{
+				code.Append(FString::Printf(TEXT("\t\tconst FString %s = \"%s\"; \n"), *entry.Key, *entry.Value));
+			}
+			code.Append(FString::Printf(TEXT("\n\t\tconst FString Address = \"%s\";\n"), *Address));
+			code.Append(FString::Printf(TEXT("\t\tconst FString ABI = \"%s\";\n"), *ABI.Replace(TEXT("\""), TEXT("\\\""), ESearchCase::IgnoreCase)));
+			code.Append(FString::Printf(TEXT("\t\tconst FString HBI = \"%s\";\n"), *HBI.Replace(TEXT("\""), TEXT("\\\""), ESearchCase::IgnoreCase)));
+			code = code.Append("}");
+			FFileHelper::SaveStringToFile(code, *FileName);
+		}
+	}
 }
 
 FReply SEktishafEditorWindow::OnCancelButtonClicked()

@@ -37,8 +37,7 @@ public:
 	void LoadResources();
 	void DrawWidget();
 	FReply OnGenerateButtonClicked();
-	UFUNCTION()
-	void OnABI(bool success, const FString content);
+	void GenerateABI(FString HBI, FString ABI, FString Address, FString FileName);
 	FReply OnCancelButtonClicked();
 	void UnloadResources();
 	FText Localize(FString Key, FString Text);
