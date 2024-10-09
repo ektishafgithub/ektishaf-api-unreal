@@ -21,6 +21,14 @@ public:
 	static void AddArrayItem(TArray<TSharedPtr<FJsonValue>>& _array, float value);
 	static void AddArrayItem(TArray<TSharedPtr<FJsonValue>>& _array, double value);
 	static void AddArrayItem(TArray<TSharedPtr<FJsonValue>>& _array, FString value);
+
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<bool> _nestedArray);
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<int> _nestedArray);
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<long> _nestedArray);
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<float> _nestedArray);
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<double> _nestedArray);
+	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<FString> _nestedArray);
+
 	static void AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<TSharedPtr<FJsonValue>> _nestedArray);
 	static void AddNestedObject(TArray<TSharedPtr<FJsonValue>>& _array, TSharedPtr<FJsonObject> _nestedObject);
 	static FString BuildPayload(TMap<FString, TSharedPtr<FJsonValue>> _map);

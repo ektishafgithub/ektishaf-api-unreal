@@ -43,7 +43,8 @@ public class Ektishaf : ModuleRules
 				"SlateCore",
 				"HTTP",
 				"Json",
-				"JsonUtilities"
+				"JsonUtilities",
+				"UMG",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

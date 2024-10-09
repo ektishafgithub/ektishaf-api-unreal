@@ -4,10 +4,16 @@
 
 #include "Subsystems/EngineSubsystem.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
+#include "EktishafNft.h"
+
 #include "EktishafSubsystem.generated.h"
+
+#define L(x) UE_LOG(LogTemp, Warning, TEXT("%s"), *x)
 
 DECLARE_DELEGATE_FourParams(FEktishafOnResponseFast, bool, const TArray<uint8>, const FString, TSharedPtr<FJsonObject>);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FEktishafOnResponse, bool, success, const FString, content);
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FEktishafOnGetNfts, const TArray<UEktishafNft*>&, nfts);
 
 const FString HostUrl = "https://api.ektishaf.com/v1";
 const FString RegisterUrl = HostUrl + "/register";
@@ -83,4 +89,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, DisplayName="Ticket", Category = "Ektishaf")
 	EKTISHAF_API FString K2_Ticket();
+
+	UFUNCTION(BlueprintCallable, DisplayName="GetNfts", Category = "Ektishaf")
+	EKTISHAF_API void K2_GetNfts(const FEktishafOnGetNfts& Callback);
+
+	UFUNCTION(BlueprintCallable, DisplayName = "MintBatch", Category = "Ektishaf")
+	EKTISHAF_API void K2_MintBatch(const FString To, TArray<int> Ids, TArray<int> Amounts, TArray<FString> Uris, const FEktishafOnResponse& Callback);
 };

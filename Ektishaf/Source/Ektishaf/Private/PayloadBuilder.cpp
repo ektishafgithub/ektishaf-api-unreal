@@ -78,6 +78,60 @@ void UPayloadBuilder::AddArrayItem(TArray<TSharedPtr<FJsonValue>>& _array, FStri
 	_array.Add(MakeShareable(new FJsonValueString(value)));
 }
 
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<bool> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<int> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<long> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<float> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<double> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
+void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<FString> _nestedArray)
+{
+	TArray<TSharedPtr<FJsonValue>> temp;
+	for (int i = 0; i < _nestedArray.Num(); i++) AddArrayItem(temp, _nestedArray[i]);
+
+	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(temp));
+	_array.Add(nestedArray);
+}
+
 void UPayloadBuilder::AddNestedArray(TArray<TSharedPtr<FJsonValue>>& _array, TArray<TSharedPtr<FJsonValue>> _nestedArray)
 {
 	TSharedRef<FJsonValueArray> nestedArray = MakeShareable(new FJsonValueArray(_nestedArray));

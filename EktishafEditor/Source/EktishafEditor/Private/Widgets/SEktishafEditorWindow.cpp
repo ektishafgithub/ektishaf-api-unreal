@@ -12,6 +12,7 @@
 #include <Engine/Engine.h>
 #include <Misc/MessageDialog.h>
 #include <Widgets/SWindow.h>
+//#include <../../../../../Plugins/Ektishaf/Source/Ektishaf/Public/EktishafSubsystem.h>
 #include "EktishafSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "LocalizedText"
@@ -20,7 +21,6 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SEktishafEditorWindow::Construct(const FArguments& InArgs)
 {
 	LoadResources();
-	
 	ChildSlot
 	[	
 		SNew(SOverlay)
