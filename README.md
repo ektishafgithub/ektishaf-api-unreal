@@ -57,6 +57,12 @@ After adding the plugin you can open the Sample map as shown in the image below:
 
 That's it, double click the Sample map to open in the editor.<br/>
 If you are using a single .uplugin, please make sure to add Ektishaf and EktishafEditor to the modules array.
+
+> [!NOTE]
+> When you run the **Sample** scene, you can click **Login** button on the first screen and use our default wallet.<br/>
+> Just select the available wallet address from the drop down.<br/>
+> Enter "**Ektishaf Ahwaz**" for password requirement and click **Submit**.<br/>
+> You can then click **GetNfts** button on the next screen and wait for the Nfts to be obtained on the address.
 <br/><br/>
 
 ### 🔨 Unreal Documentation
