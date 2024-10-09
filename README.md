@@ -51,8 +51,12 @@ Unreal Version: 5+
 2. Copy Ektishaf and EktishafEditor folders and paste them in your Plugins folder of your Unreal's project.
 3. Regenerate Visual Studio project files.
 ```
-That's it the plugin will be added to Unreal Engine.<br/>
-If you are using a single .uplugin, please make sure to add Ektishaf and EktishafEditor to the modules array. All core functions can then be executed through **UEktishafSubsystem.h** file.
+After adding the plugin you can open the Sample map as shown in the image below:
+
+![Unreal Demo Screenshot](https://github.com/user-attachments/assets/30d087eb-2578-4b18-b3ca-d5e06368ee3e)
+
+That's it, double click the Sample map to open in the editor.<br/>
+If you are using a single .uplugin, please make sure to add Ektishaf and EktishafEditor to the modules array.
 <br/><br/>
 
 ### 🔨 Unreal Documentation
