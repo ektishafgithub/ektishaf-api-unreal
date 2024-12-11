@@ -12,37 +12,36 @@
 
 DECLARE_DELEGATE_FourParams(FEktishafOnResponseFast, bool, const TArray<uint8>, const FString, TSharedPtr<FJsonObject>);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FEktishafOnResponse, bool, success, const FString, content);
-
 DECLARE_DYNAMIC_DELEGATE_OneParam(FEktishafOnGetNfts, const TArray<UEktishafNft*>&, nfts);
-
-const FString HostUrl = "https://api.ektishaf.com/v1";
-const FString RegisterUrl = HostUrl + "/register";
-const FString LoginUrl = HostUrl + "/login";
-const FString ExternalUrl = HostUrl + "/external";
-const FString RevealUrl = HostUrl + "/reveal";
-const FString BalanceUrl = HostUrl + "/balance";
-const FString ABIUrl = HostUrl + "/abi";
-const FString ReadUrl = HostUrl + "/read";
-const FString WriteUrl = HostUrl + "/write";
-const FString SignUrl = HostUrl + "/sign";
-const FString VerifyUrl = HostUrl + "/verify";
-
-static FString ConnectedAddress;
-static FString CurrentTicket;
+DECLARE_DELEGATE_OneParam(FEktishafOnGetNftsFast, const TArray<TArray<FString>>&);
 
 UCLASS(MinimalAPI)
 class UEktishafSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 
+protected:
+	FString ConnectedAddress;
+	FString CurrentTicket;
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection);
 	virtual void Deinitialize();
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const;
 
-public:
+	FString ExtractFunctionABI(FString FuncSig);
+	FString ExtractFunctionName(FString FuncSig);
 
-	EKTISHAF_API void SendRequest(const FEktishafOnResponseFast& Callback, const FString Url = HostUrl, const FString Payload = "", const FString Ticket = "", const FString Verb = "GET");
-	EKTISHAF_API void GetRequest(const FEktishafOnResponseFast& Callback, const FString Url = HostUrl);
+public:
+	FString GetWalletAddress();
+	FString GetCurrentTicket();
+	void SetWalletAddress(FString Address);
+	void SetCurrentTicket(FString Ticket);
+
+public:
+	class UBlockchainSettings* Config;
+
+	EKTISHAF_API void SendRequest(const FEktishafOnResponseFast& Callback, const FString Url, const FString Payload = "", const FString Ticket = "", const FString Verb = "GET");
+	EKTISHAF_API void GetRequest(const FEktishafOnResponseFast& Callback, const FString Url);
 	EKTISHAF_API void PostRequest(const FEktishafOnResponseFast& Callback, const FString Url, const FString Payload = "", const FString Ticket = "");
 
 	EKTISHAF_API void Host(const FEktishafOnResponseFast& Callback);
@@ -55,9 +54,12 @@ public:
 	EKTISHAF_API void Balance(const FString Rpc, const FString Ticket, const FEktishafOnResponseFast& Callback);
 	EKTISHAF_API void ABI(const FString Abi, const bool Minimal, const FEktishafOnResponseFast& Callback);
 	EKTISHAF_API void Read(const FString Rpc, const FString Ticket, const FString Contract, const FString Abi, const FString Function, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Read(const FString Rpc, const FString Ticket, const FString Contract, const FString FuncSig, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
 	EKTISHAF_API void Write(const FString Rpc, const FString Ticket, const FString Contract, const FString Abi, const FString Function, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void Write(const FString Rpc, const FString Ticket, const FString Contract, const FString FuncSig, const TArray<TSharedPtr<FJsonValue>> Args, const FEktishafOnResponseFast& Callback);
+	EKTISHAF_API void GetNfts(const FEktishafOnGetNftsFast& Callback);
 
-	UFUNCTION(BlueprintCallable, DisplayName="Host", Category = "Ektishaf")
+	UFUNCTION(BlueprintCallable, DisplayName = "Host", Category = "Ektishaf")
 	EKTISHAF_API void K2_Host(const FEktishafOnResponse& Callback);
 
 	UFUNCTION(BlueprintCallable, DisplayName="Register", Category = "Ektishaf")
