@@ -11,6 +11,9 @@ class EKTISHAF_API UNftItem : public UUserWidget
 {
 	GENERATED_BODY()
 
+private:
+	class UEktishafUI* Parent;
+
 public:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* IdText;
@@ -30,8 +33,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	FString ImageUrl;
 
-	class UEktishafUI* Parent;
-
 	UFUNCTION(BlueprintCallable)
 	void Init(class UEktishafUI* Ref, int Id, int Amount, FString MetadataUri);
 
@@ -40,4 +41,19 @@ public:
 
 	UFUNCTION()
 	void OnDownloadImage(class UTexture2DDynamic* DownloadedTexture);
+};
+
+USTRUCT(BlueprintType)
+struct FNftItemStruct
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	int Id;
+
+	UPROPERTY(BlueprintReadWrite)
+	int Amount;
+
+	UPROPERTY(BlueprintReadWrite)
+	FString Uri;
 };

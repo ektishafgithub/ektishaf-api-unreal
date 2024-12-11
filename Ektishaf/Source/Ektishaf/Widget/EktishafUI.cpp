@@ -15,10 +15,7 @@
 
 bool UEktishafUI::Initialize()
 {
-	if (!Super::Initialize())
-	{
-		return false;
-	}
+	if (!Super::Initialize()) return false;
 
 	if (BalanceText)
 	{
@@ -48,7 +45,7 @@ bool UEktishafUI::Initialize()
 	{
 		ImportSubmitButton->OnClicked.AddDynamic(this, &ThisClass::OnImportSubmitButtonClicked);
 	}
-	if (NftButton) 
+	if (NftButton)
 	{
 		NftButton->OnClicked.AddDynamic(this, &ThisClass::OnNftButtonClicked);
 	}
@@ -61,13 +58,14 @@ bool UEktishafUI::Initialize()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
-			if (LoginComboBoxString) {
+			if (LoginComboBoxString) 
+			{
 				LoginComboBoxString->AddOption(Subsystem->Config->TestWalletAddress.ToUpper());
 				LoginComboBoxString->SetSelectedIndex(0);
 			}
 		}
 	}
-
+	Log(FString::Printf(TEXT("EktishafUI Initialized Successfully.")));
 	return true;
 }
 
@@ -84,7 +82,7 @@ void UEktishafUI::SetPanel(UCanvasPanel* panel)
 {
 	HideAllPanels();
 	panel->SetVisibility(ESlateVisibility::Visible);
-	Back->SetVisibility(panel == WalletPanel ? ESlateVisibility::Hidden :ESlateVisibility::Visible);
+	Back->SetVisibility(panel == WalletPanel ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
 }
 
 void UEktishafUI::ShowLoading()
@@ -118,10 +116,10 @@ void UEktishafUI::AddNft(int Id, int Amount, FString Uri)
 	Widget->Init(this, Id, Amount, Uri);
 	GridPanel->AddChildToGrid(Widget, RowIndex, ColumnIndex);
 	Nfts.Add(Widget);
-	
+
 	GridPanel->SetColumnFill(ColumnIndex, 0.0f);
 	GridPanel->SetRowFill(RowIndex, 0.0f);
-	
+
 	ColumnIndex++;
 	if (ColumnIndex % TotalColumns == 0)
 	{
@@ -131,7 +129,7 @@ void UEktishafUI::AddNft(int Id, int Amount, FString Uri)
 }
 
 void UEktishafUI::AddNfts(TArray<TArray<FString>> _nfts)
-{	
+{
 	if (_nfts.Num() > 0)
 	{
 		for (int i = 0; i < _nfts.Num(); i++)
@@ -176,10 +174,12 @@ void UEktishafUI::OnRegisterSubmitButtonClicked()
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
 			ShowLoading();
-			Subsystem->Register(RegisterPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
+			Subsystem->Register(RegisterPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
 				if (success)
 				{
+					Subsystem->SetWalletAddress(jsonObject->GetStringField(TEXT("address")));
+					Subsystem->SetCurrentTicket(jsonObject->GetStringField(TEXT("ticket")));
 					SetPanel(NftPanel);
 					Balance();
 				}
@@ -228,10 +228,12 @@ void UEktishafUI::OnImportSubmitButtonClicked()
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
 			ShowLoading();
-			Subsystem->External(ImportPrivateKeyEditableTextBox->GetText().ToString(), ImportPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
+			Subsystem->External(ImportPrivateKeyEditableTextBox->GetText().ToString(), ImportPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
 				if (success)
 				{
+					Subsystem->SetWalletAddress(jsonObject->GetStringField(TEXT("address")));
+					Subsystem->SetCurrentTicket(jsonObject->GetStringField(TEXT("ticket")));
 					SetPanel(NftPanel);
 					Balance();
 				}
@@ -250,7 +252,14 @@ void UEktishafUI::OnNftButtonClicked()
 			ShowLoading();
 			Subsystem->GetNfts(FEktishafOnGetNftsFast::CreateWeakLambda(this, [this](TArray<TArray<FString>> nfts)
 			{
-				GrabNfts(nfts);
+				if(nfts.Num() > 0)
+				{
+					GrabNfts(nfts);
+				}
+				else
+				{
+					HideLoading();
+				}
 			}));
 		}
 	}
@@ -259,6 +268,7 @@ void UEktishafUI::OnNftButtonClicked()
 void UEktishafUI::OnBackButtonClicked()
 {
 	SetPanel(WalletPanel);
+	BalanceText->SetText(FText::FromString("BAL: 0"));
 	BalanceText->SetVisibility(ESlateVisibility::Hidden);
 	ClearGrid();
 }
@@ -272,12 +282,23 @@ void UEktishafUI::Balance()
 		{
 			Subsystem->Balance(Subsystem->Config->GetRpc("TestRpc"), Subsystem->GetCurrentTicket(), FEktishafOnResponseFast::CreateWeakLambda(this, [this](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
-				if(success && jsonObject.IsValid())
+				if (success && jsonObject.IsValid())
 				{
 					FString data = jsonObject->GetStringField(TEXT("data"));
 					BalanceText->SetText(FText::FromString(FString::Printf(TEXT("BAL: %s"), *(data.Len() >= 5 ? data.Mid(0, 5) : data))));
 				}
 			}));
+		}
+	}
+}
+
+void UEktishafUI::Log(FString Message)
+{
+	if (GEngine)
+	{
+		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
+		{
+			Subsystem->Log(Message);
 		}
 	}
 }

@@ -4,13 +4,13 @@
 #include "PayloadBuilder.h"
 #include "Contracts/EktishafNftCollection.h"
 #include "../Settings/BlockchainSettings.h"
+#include "../Widget/NftItem.h"
 
 void UEktishafSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	UE_LOG(LogTemp, Warning, TEXT("EktishafSubsystem initialized successfully."));
 	Config = GetMutableDefault<UBlockchainSettings>();
-	
+	Log(FString::Printf(TEXT("EktishafSubsystem initialized successfully.")));
 	Host(nullptr);
 }
 
@@ -76,14 +76,14 @@ void UEktishafSubsystem::SendRequest(const FEktishafOnResponseFast& Callback, co
 	Request->SetURL(Url);
 	Request->SetVerb(Verb);
 	Request->ProcessRequest();
-	UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - %s/Request - Url: %s, Payload: %s"), *Verb, *Url, *Payload);
+	Log(FString::Printf(TEXT("UEktishafSubsystem - %s/Request - Url: %s, Payload: %s"), *Verb, *Url, *Payload));
 	Request->OnProcessRequestComplete().BindWeakLambda(this, [&, Callback, Url, Verb, Payload](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 		{
 			const TArray<uint8> bytes = Response->GetContent();
 			const FString content = Response->GetContentAsString();
 
 			bool success = bWasSuccessful && Response.IsValid() && EHttpResponseCodes::IsOk(Response->GetResponseCode());
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - %s/Response - Url: %s, Content: %s"), *Verb, *Url, *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - %s/Response - Url: %s, Content: %s"), *Verb, *Url, *content));
 
 			TSharedPtr<FJsonObject> JsonObject;
 			TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(content);
@@ -230,9 +230,9 @@ void UEktishafSubsystem::GetNfts(const FEktishafOnGetNftsFast& Callback)
 void UEktishafSubsystem::K2_Host(const FEktishafOnResponse& Callback)
 {
 
-	Host(FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Host(FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 	{ 
-		UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Host: %s"), *content);
+		Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Host: %s"), *content));
 		AsyncTask(ENamedThreads::GameThread, [=]() 
 		{
 			Callback.ExecuteIfBound(success, content);
@@ -244,7 +244,7 @@ void UEktishafSubsystem::K2_Register(const FString Password, const FEktishafOnRe
 {
 	Register(Password, FEktishafOnResponseFast::CreateWeakLambda(this, [this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Register: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Register: %s"), *content));
 
 			if (success && JsonObject.IsValid())
 			{
@@ -263,7 +263,7 @@ void UEktishafSubsystem::K2_Login(const FString Ticket, const FString Password, 
 {
 	Login(Ticket, Password, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Login: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Login: %s"), *content));
 
 			if (success && JsonObject.IsValid())
 			{
@@ -282,7 +282,7 @@ void UEktishafSubsystem::K2_External(const FString PrivateKey, const FString Pas
 {
 	External(PrivateKey, Password, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_External: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_External: %s"), *content));
 
 			if (success && JsonObject.IsValid())
 			{
@@ -299,9 +299,9 @@ void UEktishafSubsystem::K2_External(const FString PrivateKey, const FString Pas
 
 void UEktishafSubsystem::K2_Reveal(const FString Ticket, const FString Password, const FEktishafOnResponse& Callback)
 {
-	Reveal(Ticket, Password, FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Reveal(Ticket, Password, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Reveal: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Reveal: %s"), *content));
 			AsyncTask(ENamedThreads::GameThread, [=]()
 				{
 					Callback.ExecuteIfBound(success, content);
@@ -311,9 +311,9 @@ void UEktishafSubsystem::K2_Reveal(const FString Ticket, const FString Password,
 
 void UEktishafSubsystem::K2_Sign(const FString Ticket, const FString Message, const FEktishafOnResponse& Callback)
 {
-	Sign(Ticket, Message, FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Sign(Ticket, Message, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Sign: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Sign: %s"), *content));
 			AsyncTask(ENamedThreads::GameThread, [=]()
 				{
 					Callback.ExecuteIfBound(success, content);
@@ -323,9 +323,9 @@ void UEktishafSubsystem::K2_Sign(const FString Ticket, const FString Message, co
 
 void UEktishafSubsystem::K2_Verify(const FString Address, const FString Message, const FString Signature, const FEktishafOnResponse& Callback)
 {
-	Verify(Address, Message, Signature, FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Verify(Address, Message, Signature, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Verify: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Verify: %s"), *content));
 			AsyncTask(ENamedThreads::GameThread, [=]()
 				{
 					Callback.ExecuteIfBound(success, content);
@@ -335,9 +335,9 @@ void UEktishafSubsystem::K2_Verify(const FString Address, const FString Message,
 
 void UEktishafSubsystem::K2_Balance(const FString Rpc, const FString Ticket, const FEktishafOnResponse& Callback)
 {
-	Balance(Rpc, Ticket, FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Balance(Rpc, Ticket, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_Balance: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Balance: %s"), *content));
 			FString data = JsonObject->GetStringField(TEXT("data"));
 
 			AsyncTask(ENamedThreads::GameThread, [=]()
@@ -349,9 +349,9 @@ void UEktishafSubsystem::K2_Balance(const FString Rpc, const FString Ticket, con
 
 void UEktishafSubsystem::K2_ABI(const FString Abi, const bool Minimal, const FEktishafOnResponse& Callback)
 {
-	ABI(Abi, Minimal, FEktishafOnResponseFast::CreateLambda([Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	ABI(Abi, Minimal, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UEktishafSubsystem - K2_ABI: %s"), *content);
+			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_ABI: %s"), *content));
 			AsyncTask(ENamedThreads::GameThread, [=]()
 				{
 					Callback.ExecuteIfBound(success, content);
@@ -375,16 +375,16 @@ void UEktishafSubsystem::K2_GetNfts(const FEktishafOnGetNfts& Callback)
 	Read(Config->GetRpc(TEXT("TestRpc")), CurrentTicket, EktishafNftCollection::Address, FString::Printf(TEXT("[\"%s\"]"), *EktishafNftCollection::getNfts_0_), "getNfts", Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray = JsonObject->GetArrayField(TEXT("data"));
-		TArray<UEktishafNft*> Nfts;
+		TArray<FNftItemStruct> Nfts;
 		for (int i = 0; i < ValueArray.Num(); i++)
 		{
 			TSharedPtr<FJsonValue> Value = ValueArray[i];
 			TArray<TSharedPtr<FJsonValue>> ItemArray = Value->AsArray();
 
-			UEktishafNft* Nft = NewObject<UEktishafNft>();
-			Nft->Id = ItemArray[0]->AsNumber();
-			Nft->Amount = ItemArray[1]->AsNumber();
-			Nft->MetadataUrl = ItemArray[2]->AsString();
+			FNftItemStruct Nft;
+			Nft.Id = ItemArray[0]->AsNumber();
+			Nft.Amount = ItemArray[1]->AsNumber();
+			Nft.Uri = ItemArray[2]->AsString();
 			Nfts.Add(Nft);
 		}
 		Callback.ExecuteIfBound(Nfts);
@@ -403,4 +403,15 @@ void UEktishafSubsystem::K2_MintBatch(const FString To, TArray<int> Ids, TArray<
 	{
 		Callback.ExecuteIfBound(Success, Content);
 	}));
+}
+
+void UEktishafSubsystem::Log(FString Message)
+{
+	if (GEngine)
+	{
+		if (Config && Config->ShowLogs)
+		{
+			L(Message);
+		}
+	}
 }

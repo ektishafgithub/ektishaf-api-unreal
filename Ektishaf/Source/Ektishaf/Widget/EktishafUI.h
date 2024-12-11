@@ -138,4 +138,5 @@ public:
 	void ShowLoading();
 	void HideLoading();
 	void ClearGrid();
+	void Log(FString Message);
 };

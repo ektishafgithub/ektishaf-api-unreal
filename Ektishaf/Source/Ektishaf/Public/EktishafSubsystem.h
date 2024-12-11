@@ -4,7 +4,6 @@
 
 #include "Subsystems/EngineSubsystem.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
-#include "EktishafNft.h"
 
 #include "EktishafSubsystem.generated.h"
 
@@ -12,7 +11,7 @@
 
 DECLARE_DELEGATE_FourParams(FEktishafOnResponseFast, bool, const TArray<uint8>, const FString, TSharedPtr<FJsonObject>);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FEktishafOnResponse, bool, success, const FString, content);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FEktishafOnGetNfts, const TArray<UEktishafNft*>&, nfts);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FEktishafOnGetNfts, const TArray<FNftItemStruct>&, nfts);
 DECLARE_DELEGATE_OneParam(FEktishafOnGetNftsFast, const TArray<TArray<FString>>&);
 
 UCLASS(MinimalAPI)
@@ -36,6 +35,7 @@ public:
 	FString GetCurrentTicket();
 	void SetWalletAddress(FString Address);
 	void SetCurrentTicket(FString Ticket);
+	void Log(FString Message);
 
 public:
 	class UBlockchainSettings* Config;
