@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #pragma once
 
@@ -15,6 +15,12 @@ private:
 	class UEktishafUI* Parent;
 
 public:
+	UPROPERTY(EditAnywhere)
+	int Id;
+
+	UPROPERTY(EditAnywhere)
+	int Amount;
+
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* IdText;
 
@@ -23,6 +29,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UImage* Image;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* OptionButton;
 
 	UPROPERTY(EditAnywhere)
 	bool bIsDownloaded = false;
@@ -34,26 +43,14 @@ public:
 	FString ImageUrl;
 
 	UFUNCTION(BlueprintCallable)
-	void Init(class UEktishafUI* Ref, int Id, int Amount, FString MetadataUri);
+	void Init(class UEktishafUI* Ref, int _Id, int _Amount, FString MetadataUri);
 
 	UFUNCTION(BlueprintCallable)
 	void GetImage();
 
 	UFUNCTION()
 	void OnDownloadImage(class UTexture2DDynamic* DownloadedTexture);
-};
 
-USTRUCT(BlueprintType)
-struct FNftItemStruct
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite)
-	int Id;
-
-	UPROPERTY(BlueprintReadWrite)
-	int Amount;
-
-	UPROPERTY(BlueprintReadWrite)
-	FString Uri;
+	UFUNCTION()
+	void OnOptionButtonClicked();
 };

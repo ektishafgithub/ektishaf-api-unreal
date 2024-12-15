@@ -1,19 +1,28 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #include "NftItem.h"
+#include "Components/Button.h"
+#include "Components/EditableTextBox.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/WidgetSwitcher.h"
 #include "EktishafSubsystem.h"
 #include "Blueprint/AsyncTaskDownloadImage.h"
 #include "Engine/Texture2DDynamic.h"
 #include "EktishafUI.h"
 
-void UNftItem::Init(UEktishafUI* Ref, int Id, int Amount, FString MetadataUri)
+void UNftItem::Init(UEktishafUI* Ref, int _Id, int _Amount, FString MetadataUri)
 {
 	Parent = Ref;
+	Id = _Id;
+	Amount = _Amount;
 	IdText->SetText(FText::FromString(FString::FromInt(Id)));
 	AmountText->SetText(FText::FromString(FString::FromInt(Amount)));
 	Uri = MetadataUri;
+	if (OptionButton)
+	{
+		OptionButton->OnClicked.AddDynamic(this, &ThisClass::OnOptionButtonClicked);
+	}
 }
 
 void UNftItem::GetImage()
@@ -47,4 +56,11 @@ void UNftItem::OnDownloadImage(UTexture2DDynamic* DownloadedTexture)
 		Parent->HideLoading();
 	}
 	Parent->Log(FString::Printf(TEXT("Image Downloaded (%s)"), *ImageUrl));
+}
+
+void UNftItem::OnOptionButtonClicked()
+{
+	Parent->TabWidgetSwitcher->SetActiveWidgetIndex(3);
+	Parent->NftSendToAmountEditableTextBox->SetText(FText::FromString(FString::FromInt(Amount)));
+	Parent->SelectedItem = this;
 }

@@ -1,29 +1,14 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "Types/EktishafDataTypes.h"
 #include "BlockchainSettings.generated.h"
 
 const FString ApiService = "https://api.ektishaf.com";
 const FString ApiVersion = "v1";
-
-UENUM(BlueprintType)
-enum EServOp
-{
-	None,
-	Register,
-	Login,
-	External,
-	Reveal,
-	Sign,
-	Verify,
-	Balance,
-	ABI,
-	Read,
-	Write
-};
 
 UCLASS(config=Game, defaultConfig, meta=(DisplayName = "Ektishaf"))
 class EKTISHAF_API UBlockchainSettings : public UDeveloperSettings
@@ -31,19 +16,22 @@ class EKTISHAF_API UBlockchainSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "A list of rpc urls that can be used selectively."))
-	TMap<FString, FString> RpcList;
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "A list of EVM compatible networks to be used for blockchain communication."))
+	TArray<FEktishafNetwork> Networks;
 
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "A test wallet address provided to see how the demo functionality works."))
-	FString TestWalletAddress;
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "A list of accounts to be used for development purposes. To generate, please click Ektishaf->Generate New Accounts."))
+	TArray<FEktishafAccount> Accounts;
 
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "A test ticket provided to allow authorization for demo blockchain operation."))
-	FString TestTicket;
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ClampMin="1", ClampMax="5", UIMin="1", UIMax="5", ToolTip = "How many accounts to create when a request is made from Ektishaf->Generate New Accounts."))
+	int MaxAccountsPerRequest;
 
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "An ipfs url to access NFT's assets on blockchain. i.e. Pinata gateway url. (This property is only for Studio who owns the contract)"))
-	FString DataUrl;
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "When a request is made to create new accounts, this password will be used for all of them. Make sure to modify (if needed) and remember this before Generate New Accounts."))
+	FString GenerateAccountsWithPassword;
 
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "The metadata hash obtained when all metadatas are uploaded for the NFTs. (This property is only for Studio who owns the contract)"))
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "An IPFS url to access NFT's assets path on blockchain. i.e. Pinata gateway url. (Only for contract owner)"))
+	FString AssetGateway;
+
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "The metadata hash obtained when all metadatas are uploaded for the NFTs. (Only for contract owner)"))
 	FString MetadataHash;
 
 	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "Shows or hides logs."))
@@ -59,7 +47,10 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = Blockchain)
-	FString GetRpc(const FString& RpcKey);
+	FEktishafNetwork GetNetwork(const FString& ChainId);
+
+	UFUNCTION(BlueprintCallable, Category = Blockchain)
+	FEktishafAccount GetAccount(const FString& Address);
 
 	UFUNCTION(BlueprintCallable, Category = Blockchain)
 	TArray<FString> GetMetadataUris(const TArray<int> Ids);

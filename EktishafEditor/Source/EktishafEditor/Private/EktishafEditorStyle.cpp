@@ -42,7 +42,9 @@ TSharedRef< FSlateStyleSet > FEktishafEditorStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("EktishafEditorStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("EktishafEditor")->GetBaseDir() / TEXT("Resources"));
 
+	// Enabling comments below will show icons aside the plugin menu entries in the editor.
 	Style->Set("EktishafEditor.OpenPluginWindow", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
+	Style->Set("EktishafEditor.GenerateNewAccounts", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
 
 	return Style;
 }

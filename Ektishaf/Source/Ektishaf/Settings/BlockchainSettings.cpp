@@ -1,13 +1,30 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #include "BlockchainSettings.h"
+#include "Misc/ConfigCacheIni.h"
+#include "PropertyEditorModule.h"
+#include "PayloadBuilder.h"
 
 UBlockchainSettings::UBlockchainSettings()
 {
-	RpcList.Add("TestRpc", "https://eth-sepolia.g.alchemy.com/v2/YBy3ka0SJ5YW7aGgnz7oj-U_QUJ_pND4");
-	TestWalletAddress = "0xf0deb67ec9064794211e14938c639728bda2481a";
-	TestTicket = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0IjoiZ29yIiwicGFzc3dvcmQiOiJFa3Rpc2hhZiBBaHdheiIsImVuY3J5cHRpb24iOiJ7XCJhZGRyZXNzXCI6XCJmMGRlYjY3ZWM5MDY0Nzk0MjExZTE0OTM4YzYzOTcyOGJkYTI0ODFhXCIsXCJpZFwiOlwiZmZkYWVjOTUtOThjMi00YTdiLWI1YzItYWQ0YzZkYjNkZWY5XCIsXCJ2ZXJzaW9uXCI6MyxcIkNyeXB0b1wiOntcImNpcGhlclwiOlwiYWVzLTEyOC1jdHJcIixcImNpcGhlcnBhcmFtc1wiOntcIml2XCI6XCIyMWIyODY2ZjdlMjJkMTc2MjRhMTM4YWY2NDhmM2EzN1wifSxcImNpcGhlcnRleHRcIjpcImQ1NzFjOWZjNGRkN2Q5NGE2MGRkMjIwYzY0ZWRjZDlmZGQyNGYxMmU3ODVkZDEzM2Q0ZWI4OTc1OWM0OTFlNmRcIixcImtkZlwiOlwic2NyeXB0XCIsXCJrZGZwYXJhbXNcIjp7XCJzYWx0XCI6XCI3NmVjNzcxMDc2NTc0OTkzOWY3ZDliOTM0MjM3YTFlY2RhYjNiMzYzNDI3ZDk5OGY3OGFmMTdiNTMxYzVmODIwXCIsXCJuXCI6MTMxMDcyLFwiZGtsZW5cIjozMixcInBcIjoxLFwiclwiOjh9LFwibWFjXCI6XCI2ZGYyNTMwODQ4ZWY1MjI3MjNmYzU5MWJkZjVmYzU1ZmI3MTg0ODFiZjA2MzRkYWQ1Y2M4MWE5ZTlmMDZiN2FmXCJ9LFwieC1ldGhlcnNcIjp7XCJjbGllbnRcIjpcImV0aGVycy82LjEzLjJcIixcImdldGhGaWxlbmFtZVwiOlwiVVRDLS0yMDI0LTA4LTIzVDExLTQzLTAwLjBaLS1mMGRlYjY3ZWM5MDY0Nzk0MjExZTE0OTM4YzYzOTcyOGJkYTI0ODFhXCIsXCJwYXRoXCI6XCJtLzQ0Jy82MCcvMCcvMC8wXCIsXCJsb2NhbGVcIjpcImVuXCIsXCJtbmVtb25pY0NvdW50ZXJcIjpcImVkOGI4OTllNWVhMzU0ZDc5MGRmMDAxOGRlMzc3M2NmXCIsXCJtbmVtb25pY0NpcGhlcnRleHRcIjpcImU1NDZjNTBlYzVhZTcxNzlmNDMyNDFkYzFiZjJhM2I4XCIsXCJ2ZXJzaW9uXCI6XCIwLjFcIn19IiwiaWF0IjoxNzI0ODE5NzM5LCJleHAiOjE3MjQ5MDYxMzl9.2QPVZ6t_AHWKDdPTzj25Fj41dMzF764CagpFWKFGPuA";
-	DataUrl = "https://azure-elaborate-quelea-290.mypinata.cloud/ipfs";
+	// Sample Network
+	FEktishafNetwork Sepolia;
+	Sepolia.NetworkName = "Sepolia test network";
+	Sepolia.Rpc = "https://eth-sepolia.g.alchemy.com/v2/YBy3ka0SJ5YW7aGgnz7oj-U_QUJ_pND4";
+	Sepolia.ChainId = "11155111";
+	Sepolia.CurrencySymbol = "SepoliaETH";
+	Sepolia.BlockExplorer = "https://sepolia.etherscan.io";
+	Networks.Add(Sepolia);
+
+	// Sample Account
+	FEktishafAccount SampleAccount;
+	SampleAccount.WalletAddress = FString(TEXT("0xf0deb67ec9064794211e14938c639728bda2481a"));
+	SampleAccount.Ticket = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0IjoiZ29yIiwicGFzc3dvcmQiOiJFa3Rpc2hhZiBBaHdheiIsImVuY3J5cHRpb24iOiJ7XCJhZGRyZXNzXCI6XCJmMGRlYjY3ZWM5MDY0Nzk0MjExZTE0OTM4YzYzOTcyOGJkYTI0ODFhXCIsXCJpZFwiOlwiZmZkYWVjOTUtOThjMi00YTdiLWI1YzItYWQ0YzZkYjNkZWY5XCIsXCJ2ZXJzaW9uXCI6MyxcIkNyeXB0b1wiOntcImNpcGhlclwiOlwiYWVzLTEyOC1jdHJcIixcImNpcGhlcnBhcmFtc1wiOntcIml2XCI6XCIyMWIyODY2ZjdlMjJkMTc2MjRhMTM4YWY2NDhmM2EzN1wifSxcImNpcGhlcnRleHRcIjpcImQ1NzFjOWZjNGRkN2Q5NGE2MGRkMjIwYzY0ZWRjZDlmZGQyNGYxMmU3ODVkZDEzM2Q0ZWI4OTc1OWM0OTFlNmRcIixcImtkZlwiOlwic2NyeXB0XCIsXCJrZGZwYXJhbXNcIjp7XCJzYWx0XCI6XCI3NmVjNzcxMDc2NTc0OTkzOWY3ZDliOTM0MjM3YTFlY2RhYjNiMzYzNDI3ZDk5OGY3OGFmMTdiNTMxYzVmODIwXCIsXCJuXCI6MTMxMDcyLFwiZGtsZW5cIjozMixcInBcIjoxLFwiclwiOjh9LFwibWFjXCI6XCI2ZGYyNTMwODQ4ZWY1MjI3MjNmYzU5MWJkZjVmYzU1ZmI3MTg0ODFiZjA2MzRkYWQ1Y2M4MWE5ZTlmMDZiN2FmXCJ9LFwieC1ldGhlcnNcIjp7XCJjbGllbnRcIjpcImV0aGVycy82LjEzLjJcIixcImdldGhGaWxlbmFtZVwiOlwiVVRDLS0yMDI0LTA4LTIzVDExLTQzLTAwLjBaLS1mMGRlYjY3ZWM5MDY0Nzk0MjExZTE0OTM4YzYzOTcyOGJkYTI0ODFhXCIsXCJwYXRoXCI6XCJtLzQ0Jy82MCcvMCcvMC8wXCIsXCJsb2NhbGVcIjpcImVuXCIsXCJtbmVtb25pY0NvdW50ZXJcIjpcImVkOGI4OTllNWVhMzU0ZDc5MGRmMDAxOGRlMzc3M2NmXCIsXCJtbmVtb25pY0NpcGhlcnRleHRcIjpcImU1NDZjNTBlYzVhZTcxNzlmNDMyNDFkYzFiZjJhM2I4XCIsXCJ2ZXJzaW9uXCI6XCIwLjFcIn19IiwiaWF0IjoxNzI0ODE5NzM5LCJleHAiOjE3MjQ5MDYxMzl9.2QPVZ6t_AHWKDdPTzj25Fj41dMzF764CagpFWKFGPuA";
+	Accounts.Add(SampleAccount);
+
+	MaxAccountsPerRequest = 5;
+
+	AssetGateway = "https://azure-elaborate-quelea-290.mypinata.cloud/ipfs";
 	MetadataHash = "QmRE6YQTpQxu725mXr5usqVGfcwGZFJrxDGjnZgCr7Ruso";
 	ShowLogs = true;
 }
@@ -17,20 +34,42 @@ const UBlockchainSettings* UBlockchainSettings::GetBlockchainSettings()
 	return GetDefault<UBlockchainSettings>();
 }
 
-FString UBlockchainSettings::GetRpc(const FString& RpcKey)
+FEktishafNetwork UBlockchainSettings::GetNetwork(const FString& ChainId)
 {
-	if (RpcKey.IsEmpty())
+	if (Networks.Num() <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Please specify a valid RpcKey from the list in Project Settings->Game->Ektishaf->Blockchain->RpcList."), *RpcKey);
-		return "";
+		UE_LOG(LogTemp, Warning, TEXT("Failed to obtain networks from Project Settings->Game->Ektishaf->Blockchain->Networks"));
+		return FEktishafNetwork();
 	}
 
-	if (!RpcList.Contains(RpcKey))
+	for(const FEktishafNetwork& Network : Networks)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Could not find RpcKey: %s in the list, please make sure to specify a valid RpcKey."), *RpcKey);
-		return "";
+		if (Network.ChainId.ToUpper().Equals(ChainId.ToUpper()))
+		{
+			return Network;
+		}
 	}
-	return RpcList[RpcKey];
+	UE_LOG(LogTemp, Warning, TEXT("No network found with the chain id: %s"), *ChainId);
+	return FEktishafNetwork();
+}
+
+FEktishafAccount UBlockchainSettings::GetAccount(const FString& Address)
+{
+	if (Accounts.Num() <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to obtain accounts from Project Settings->Game->Ektishaf->Accounts->Accounts"));
+		return FEktishafAccount();
+	}
+
+	for (const FEktishafAccount& Account : Accounts)
+	{
+		if (Account.WalletAddress.ToUpper().Equals(Address.ToUpper()))
+		{
+			return Account;
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("No account found with the address: %s"), *Address);
+	return FEktishafAccount();
 }
 
 FString UBlockchainSettings::GetUrl(const FString& api)
@@ -43,7 +82,7 @@ TArray<FString> UBlockchainSettings::GetMetadataUris(const TArray<int> Ids)
 	TArray<FString> Uris;
 	for (int i = 0; i < Ids.Num(); i++)
 	{
-		Uris.Add(FString::Printf(TEXT("%s/%s/%d.json"), *DataUrl, *MetadataHash, Ids[i]));
+		Uris.Add(FString::Printf(TEXT("%s/%s/%d.json"), *AssetGateway, *MetadataHash, Ids[i]));
 	}
 	return Uris;
 }
@@ -63,6 +102,8 @@ FString UBlockchainSettings::Op(EServOp servOp)
 		case EServOp::ABI:      return GetUrl("abi");
 		case EServOp::Read:     return GetUrl("read");
 		case EServOp::Write:    return GetUrl("write");
-		default:              return GetUrl();
+		case EServOp::Accounts: return GetUrl("accounts");
+		case EServOp::Send:     return GetUrl("send");
+		default:                return GetUrl();
 	}
 }

@@ -1,15 +1,16 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #include "EktishafSubsystem.h"
 #include "PayloadBuilder.h"
 #include "Contracts/EktishafNftCollection.h"
-#include "../Settings/BlockchainSettings.h"
 #include "../Widget/NftItem.h"
 
 void UEktishafSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+
 	Config = GetMutableDefault<UBlockchainSettings>();
+	CurrentNetwork = Config->Networks[0];
 	Log(FString::Printf(TEXT("EktishafSubsystem initialized successfully.")));
 	Host(nullptr);
 }
@@ -22,41 +23,6 @@ void UEktishafSubsystem::Deinitialize()
 bool UEktishafSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	return true;
-}
-
-FString UEktishafSubsystem::ExtractFunctionABI(FString FuncSig)
-{
-	return FString::Printf(TEXT("[\"%s\"]"), *FuncSig.TrimChar('[').TrimChar(']').TrimQuotes());
-}
-
-FString UEktishafSubsystem::ExtractFunctionName(FString FuncSig)
-{
-	FString trimmed = FuncSig.TrimChar('[').TrimChar(']').TrimQuotes();
-	TArray<FString> splits;
-	trimmed.ParseIntoArray(splits, TEXT(" "), false);
-	FString func = splits[1];
-	int32 index = func.Find("(", ESearchCase::IgnoreCase, ESearchDir::FromStart, 0);
-	return func.Mid(0, index);
-}
-
-FString UEktishafSubsystem::GetWalletAddress()
-{
-	return ConnectedAddress;
-}
-
-FString UEktishafSubsystem::GetCurrentTicket()
-{
-	return CurrentTicket;
-}
-
-void UEktishafSubsystem::SetWalletAddress(FString Address)
-{
-	ConnectedAddress = Address;
-}
-
-void UEktishafSubsystem::SetCurrentTicket(FString Ticket)
-{
-	CurrentTicket = Ticket;
 }
 
 void UEktishafSubsystem::SendRequest(const FEktishafOnResponseFast& Callback, const FString Url, const FString Payload, const FString Ticket, const FString Verb)
@@ -147,10 +113,10 @@ void UEktishafSubsystem::Verify(const FString Address, const FString Message, co
 	PostRequest(Callback, Config->Op(EServOp::Verify), Payload);
 }
 
-void UEktishafSubsystem::Balance(const FString Rpc, const FString Ticket, const FEktishafOnResponseFast& Callback)
+void UEktishafSubsystem::Balance(const FString Rpc, const FString Address, const FEktishafOnResponseFast& Callback)
 {
-	const FString Payload = UPayloadBuilder::BuildPayload({ {"rpc", UPayloadBuilder::FStringToJsonValue(Rpc)}, {"ticket", UPayloadBuilder::FStringToJsonValue(Ticket)} });
-	PostRequest(Callback, Config->Op(EServOp::Balance), Payload, Ticket);
+	const FString Payload = UPayloadBuilder::BuildPayload({ {"rpc", UPayloadBuilder::FStringToJsonValue(Rpc)}, {"address", UPayloadBuilder::FStringToJsonValue(Address)} });
+	PostRequest(Callback, Config->Op(EServOp::Balance), Payload);
 }
 
 void UEktishafSubsystem::ABI(const FString Abi, const bool Minimal, const FEktishafOnResponseFast& Callback)
@@ -210,7 +176,7 @@ EKTISHAF_API void UEktishafSubsystem::Write(const FString Rpc, const FString Tic
 void UEktishafSubsystem::GetNfts(const FEktishafOnGetNftsFast& Callback)
 {
 	TArray<TSharedPtr<FJsonValue>> Args;
-	Read(Config->GetRpc(TEXT("TestRpc")), CurrentTicket, EktishafNftCollection::Address, EktishafNftCollection::getNfts_0_, Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
+	Read(CurrentNetwork.Rpc, CurrentAccount.Ticket, EktishafNftCollection::Address, EktishafNftCollection::getNfts_0_, Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray = JsonObject->GetArrayField(TEXT("data"));
 		TArray<TArray<FString>> nfts;
@@ -225,6 +191,21 @@ void UEktishafSubsystem::GetNfts(const FEktishafOnGetNftsFast& Callback)
 		}
 		Callback.ExecuteIfBound(nfts);
 	}));
+}
+
+void UEktishafSubsystem::Accounts(int Registers, const FString Password, const FEktishafOnResponseFast& Callback)
+{
+	const FString Payload = UPayloadBuilder::BuildPayload({ {"registers", UPayloadBuilder::IntToJsonValue(Registers)}, {"password", UPayloadBuilder::FStringToJsonValue(Password)} });
+	PostRequest(Callback, Config->Op(EServOp::Accounts), Payload);
+}
+
+void UEktishafSubsystem::Send(const FString Rpc, const FString To, const FString Amount, const FString Ticket, const FEktishafOnResponseFast& Callback)
+{
+	const FString Payload = UPayloadBuilder::BuildPayload({
+	{"rpc", UPayloadBuilder::FStringToJsonValue(Rpc)},
+	{"to", UPayloadBuilder::FStringToJsonValue(To)},
+	{"amount", UPayloadBuilder::FStringToJsonValue(Amount)} });
+	PostRequest(Callback, Config->Op(EServOp::Send), Payload, Ticket);
 }
 
 void UEktishafSubsystem::K2_Host(const FEktishafOnResponse& Callback)
@@ -248,8 +229,8 @@ void UEktishafSubsystem::K2_Register(const FString Password, const FEktishafOnRe
 
 			if (success && JsonObject.IsValid())
 			{
-				ConnectedAddress = JsonObject->GetStringField(TEXT("address"));
-				CurrentTicket = JsonObject->GetStringField(TEXT("ticket"));
+				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
 			AsyncTask(ENamedThreads::GameThread, [=]()
@@ -267,8 +248,8 @@ void UEktishafSubsystem::K2_Login(const FString Ticket, const FString Password, 
 
 			if (success && JsonObject.IsValid())
 			{
-				ConnectedAddress = JsonObject->GetStringField(TEXT("address"));
-				CurrentTicket = JsonObject->GetStringField(TEXT("ticket"));
+				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
 			AsyncTask(ENamedThreads::GameThread, [=]()
@@ -286,8 +267,8 @@ void UEktishafSubsystem::K2_External(const FString PrivateKey, const FString Pas
 
 			if (success && JsonObject.IsValid())
 			{
-				ConnectedAddress = JsonObject->GetStringField(TEXT("address"));
-				CurrentTicket = JsonObject->GetStringField(TEXT("ticket"));
+				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
 			AsyncTask(ENamedThreads::GameThread, [=]()
@@ -333,9 +314,9 @@ void UEktishafSubsystem::K2_Verify(const FString Address, const FString Message,
 		}));
 }
 
-void UEktishafSubsystem::K2_Balance(const FString Rpc, const FString Ticket, const FEktishafOnResponse& Callback)
+void UEktishafSubsystem::K2_Balance(const FString Rpc, const FString Address, const FEktishafOnResponse& Callback)
 {
-	Balance(Rpc, Ticket, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
+	Balance(Rpc, Address, FEktishafOnResponseFast::CreateLambda([this, Callback](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject)
 		{
 			Log(FString::Printf(TEXT("UEktishafSubsystem - K2_Balance: %s"), *content));
 			FString data = JsonObject->GetStringField(TEXT("data"));
@@ -359,29 +340,24 @@ void UEktishafSubsystem::K2_ABI(const FString Abi, const bool Minimal, const FEk
 		}));
 }
 
-FString UEktishafSubsystem::K2_ConnectedAddress()
+FEktishafAccount UEktishafSubsystem::K2_GetCurrentAccount()
 {
-	return ConnectedAddress;
-}
-
-FString UEktishafSubsystem::K2_Ticket()
-{
-	return CurrentTicket;
+	return CurrentAccount;
 }
 
 void UEktishafSubsystem::K2_GetNfts(const FEktishafOnGetNfts& Callback)
 {
 	TArray<TSharedPtr<FJsonValue>> Args;
-	Read(Config->GetRpc(TEXT("TestRpc")), CurrentTicket, EktishafNftCollection::Address, FString::Printf(TEXT("[\"%s\"]"), *EktishafNftCollection::getNfts_0_), "getNfts", Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
+	Read(CurrentNetwork.Rpc, CurrentAccount.Ticket, EktishafNftCollection::Address, FString::Printf(TEXT("[\"%s\"]"), *EktishafNftCollection::getNfts_0_), "getNfts", Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray = JsonObject->GetArrayField(TEXT("data"));
-		TArray<FNftItemStruct> Nfts;
+		TArray<FEktishafNft> Nfts;
 		for (int i = 0; i < ValueArray.Num(); i++)
 		{
 			TSharedPtr<FJsonValue> Value = ValueArray[i];
 			TArray<TSharedPtr<FJsonValue>> ItemArray = Value->AsArray();
 
-			FNftItemStruct Nft;
+			FEktishafNft Nft;
 			Nft.Id = ItemArray[0]->AsNumber();
 			Nft.Amount = ItemArray[1]->AsNumber();
 			Nft.Uri = ItemArray[2]->AsString();
@@ -399,10 +375,36 @@ void UEktishafSubsystem::K2_MintBatch(const FString To, TArray<int> Ids, TArray<
 	UPayloadBuilder::AddNestedArray(Args, Amounts);
 	UPayloadBuilder::AddNestedArray(Args, Uris);
 
-	Write(Config->GetRpc(TEXT("TestRpc")), CurrentTicket, EktishafNftCollection::Address, FString::Printf(TEXT("[\"%s\"]"), *EktishafNftCollection::mintBatch_4_address_uint256Array_uint256Array_stringArray), "mintBatch", Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
+	Write(CurrentNetwork.Rpc, CurrentAccount.Ticket, EktishafNftCollection::Address, FString::Printf(TEXT("[\"%s\"]"), *EktishafNftCollection::mintBatch_4_address_uint256Array_uint256Array_stringArray), "mintBatch", Args, FEktishafOnResponseFast::CreateLambda([this, Callback](bool Success, const TArray<uint8> Bytes, const FString Content, TSharedPtr<FJsonObject> JsonObject)
 	{
 		Callback.ExecuteIfBound(Success, Content);
 	}));
+}
+
+FString UEktishafSubsystem::ExtractFunctionABI(FString FuncSig)
+{
+	return FString::Printf(TEXT("[\"%s\"]"), *FuncSig.TrimChar('[').TrimChar(']').TrimQuotes());
+}
+
+FString UEktishafSubsystem::ExtractFunctionName(FString FuncSig)
+{
+	FString trimmed = FuncSig.TrimChar('[').TrimChar(']').TrimQuotes();
+	TArray<FString> splits;
+	trimmed.ParseIntoArray(splits, TEXT(" "), false);
+	FString func = splits[1];
+	int32 index = func.Find("(", ESearchCase::IgnoreCase, ESearchDir::FromStart, 0);
+	return func.Mid(0, index);
+}
+
+FEktishafAccount UEktishafSubsystem::GetAccount()
+{
+	return CurrentAccount;
+}
+
+void UEktishafSubsystem::SetAccount(const FString Address, const FString Ticket)
+{
+	CurrentAccount.WalletAddress = Address;
+	CurrentAccount.Ticket = Ticket;
 }
 
 void UEktishafSubsystem::Log(FString Message)
@@ -411,7 +413,7 @@ void UEktishafSubsystem::Log(FString Message)
 	{
 		if (Config && Config->ShowLogs)
 		{
-			L(Message);
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *Message)
 		}
 	}
 }

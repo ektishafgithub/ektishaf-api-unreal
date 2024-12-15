@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #pragma once
 
@@ -16,6 +16,9 @@ class EKTISHAF_API UEktishafUI : public UUserWidget
 public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UNftItem> NftTemplate;
+
+	UPROPERTY(EditAnywhere)
+	class UNftItem* SelectedItem;
 
 	UPROPERTY(BlueprintReadOnly)
 	int ColumnIndex = 0;
@@ -35,7 +38,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<class UNftItem*> Nfts;
 
-private:
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UTextBlock* AddressText;
+
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* BalanceText;
 
@@ -73,7 +78,55 @@ private:
 	class UEditableTextBox* ImportPasswordEditableTextBox;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	class UButton* NftButton;
+	class UButton* AccountWalletButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* AccountSendButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UBorder* AccountToComboBoxStringBorder;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UComboBoxString* AccountToComboBoxString;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UBorder* AccountSendToAccountEditableTextBoxBorder;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UEditableTextBox* AccountSendToAccountEditableTextBox;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UEditableTextBox* AccountSendToAmountEditableTextBox;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* AccountToggleButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* AccountContinueButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* AccountNftButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UBorder* NftToComboBoxStringBorder;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UComboBoxString* NftToComboBoxString;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UBorder* NftSendToAccountEditableTextBoxBorder;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UEditableTextBox* NftSendToAccountEditableTextBox;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UEditableTextBox* NftSendToAmountEditableTextBox;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* NftToggleButton;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UButton* NftContinueButton;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UButton* BackButton;
@@ -84,7 +137,7 @@ private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UGridPanel* GridPanel;
 
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	/*UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UCanvasPanel* WalletPanel;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
@@ -97,10 +150,16 @@ private:
 	class UCanvasPanel* ImportWalletPanel;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	class UCanvasPanel* NftPanel;
+	class UCanvasPanel* NftPanel;*/
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UCanvasPanel* LoadingPanel;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UWidgetSwitcher* PanelWidgetSwitcher;
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UWidgetSwitcher* TabWidgetSwitcher;
 
 	UFUNCTION()
 	void OnRegisterButtonClicked();
@@ -124,7 +183,25 @@ private:
 	void OnImportSubmitButtonClicked();
 
 	UFUNCTION()
-	void OnNftButtonClicked();
+	void OnAccountWalletButtonClicked();
+
+	UFUNCTION()
+	void OnAccountSendButtonClicked();
+
+	UFUNCTION()
+	void OnAccountToggleButtonClicked();
+
+	UFUNCTION()
+	void OnAccountContinueButtonClicked();
+
+	UFUNCTION()
+	void OnAccountNftButtonClicked();
+
+	UFUNCTION()
+	void OnNftToggleButtonClicked();
+
+	UFUNCTION()
+	void OnNftContinueButtonClicked();
 
 	void Balance();
 	void AddNft(int Id, int Amount, FString Uri);
@@ -133,8 +210,6 @@ private:
 	void GrabNfts(TArray<TArray<FString>> _nfts);
 
 public:
-	void HideAllPanels();
-	void SetPanel(class UCanvasPanel* panel);
 	void ShowLoading();
 	void HideLoading();
 	void ClearGrid();

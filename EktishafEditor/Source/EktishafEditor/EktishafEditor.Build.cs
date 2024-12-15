@@ -26,6 +26,7 @@ public class EktishafEditor : ModuleRules
 			new string[]
 			{
 				"Core",
+				"DeveloperSettings"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -46,6 +47,7 @@ public class EktishafEditor : ModuleRules
                 "Ektishaf",
                 "HTTP",
 				"Json",
+				"JsonUtilities"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

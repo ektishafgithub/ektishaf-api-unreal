@@ -17,6 +17,7 @@ public:
 	virtual void ShutdownModule() override;
 	void PluginButtonClicked();
 	
+	void GenerateNewAccountsClicked();
 private:
 	void RegisterMenus();
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);

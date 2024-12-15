@@ -9,6 +9,8 @@
 #include "Widgets/Text/STextBlock.h"
 #include "ToolMenus.h"
 #include "WindowManager.h"
+#include "EktishafSubsystem.h"
+#include "../../../../Ektishaf/Source/Ektishaf/Settings/BlockchainSettings.h"
 
 #define LOCTEXT_NAMESPACE "FEktishafEditorModule"
 
@@ -21,6 +23,7 @@ void FEktishafEditorModule::StartupModule()
 
 	PluginCommands = MakeShareable(new FUICommandList);
 	PluginCommands->MapAction(FEktishafEditorCommands::Get().OpenPluginWindow, FExecuteAction::CreateRaw(this, &FEktishafEditorModule::PluginButtonClicked), FCanExecuteAction());
+	PluginCommands->MapAction(FEktishafEditorCommands::Get().GenerateNewAccounts, FExecuteAction::CreateRaw(this, &FEktishafEditorModule::GenerateNewAccountsClicked), FCanExecuteAction());
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FEktishafEditorModule::RegisterMenus));
 	WindowManager::Get().RegisterObjectCustomizations();
 #endif
@@ -67,6 +70,54 @@ void FEktishafEditorModule::PluginButtonClicked()
 	}
 }
 
+void FEktishafEditorModule::GenerateNewAccountsClicked()
+{
+	if (GEngine)
+	{
+		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
+		{
+			if (Subsystem->Config->Accounts.Num() > 10)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Creating more than 10 accounts is not allowed."));
+				return;
+			}
+			if (Subsystem->Config->GenerateAccountsWithPassword.IsEmpty())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Please specify an account password in Project Settings->Game->Ektishaf->Accounts->GenerateAccountsWithPassword to be used for new accounts."));
+				return;
+			}
+			Subsystem->Accounts(Subsystem->Config->MaxAccountsPerRequest, Subsystem->Config->GenerateAccountsWithPassword, FEktishafOnResponseFast::CreateLambda([this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
+			{
+				if (success && jsonObject.IsValid())
+				{
+					TArray<TSharedPtr<FJsonValue>> ValueArray = jsonObject->GetArrayField(TEXT("accounts"));
+					if(ValueArray.Num() > 0)
+					{
+						for (int i = 0; i < ValueArray.Num(); i++)
+						{
+							TSharedPtr<FJsonObject> jObject = ValueArray[i]->AsObject();
+							FString address = jObject->GetStringField(TEXT("address"));
+							FString ticket = jObject->GetStringField(TEXT("ticket"));
+
+							FEktishafAccount Account;
+							Account.WalletAddress = address.ToLower();
+							Account.Ticket = ticket;
+							Subsystem->Config->Accounts.Add(Account);
+							UE_LOG(LogTemp, Warning, TEXT("Generated Account %d: %s"), i + 1, *address);
+						}
+						Subsystem->Config->SaveConfig();
+						GConfig->Flush(false, GGameIni);
+						const FText Title = LOCTEXT("AccountsDialogInfoTitleKey", "New Accounts");
+						const FText Message = LOCTEXT("AccountsDialogInfoMessageKey", "New accounts are created successfully.");
+						EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
+					}
+				}
+			}));
+			
+		}
+	}
+}
+
 void FEktishafEditorModule::RegisterMenus()
 {
 	FToolMenuOwnerScoped OwnerScoped(this);
@@ -75,6 +126,7 @@ void FEktishafEditorModule::RegisterMenus()
 		{
 			FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
 			Section.AddMenuEntryWithCommandList(FEktishafEditorCommands::Get().OpenPluginWindow, PluginCommands);
+			Section.AddMenuEntryWithCommandList(FEktishafEditorCommands::Get().GenerateNewAccounts, PluginCommands);
 		}
 	}
 	{
@@ -104,6 +156,7 @@ TSharedRef<SWidget> FEktishafEditorModule::PopulateComboButton(TSharedPtr<FUICom
 {
 	FMenuBuilder MenuBuilder(true, Commands);
 	MenuBuilder.AddMenuEntry(FEktishafEditorCommands::Get().OpenPluginWindow);
+	MenuBuilder.AddMenuEntry(FEktishafEditorCommands::Get().GenerateNewAccounts);
 	return MenuBuilder.MakeWidget();
 }
 
