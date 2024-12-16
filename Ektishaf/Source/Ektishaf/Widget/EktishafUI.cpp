@@ -81,28 +81,16 @@ bool UEktishafUI::Initialize()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
-			if (LoginComboBoxString) 
+			if (LoginComboBoxString && AccountToComboBoxString && NftToComboBoxString)
 			{
 				for (const FEktishafAccount& Entry : Subsystem->Config->Accounts)
 				{
-					LoginComboBoxString->AddOption(Entry.WalletAddress.ToUpper());
+					LoginComboBoxString->AddOption(Entry.Address.ToUpper());
+					AccountToComboBoxString->AddOption(Entry.Address.ToUpper());
+					NftToComboBoxString->AddOption(Entry.Address.ToUpper());
 				}
 				LoginComboBoxString->SetSelectedIndex(0);
-			}
-			if (AccountToComboBoxString)
-			{
-				for (const FEktishafAccount& Entry : Subsystem->Config->Accounts)
-				{
-					AccountToComboBoxString->AddOption(Entry.WalletAddress.ToUpper());
-				}
 				AccountToComboBoxString->SetSelectedIndex(0);
-			}
-			if (NftToComboBoxString)
-			{
-				for (const FEktishafAccount& Entry : Subsystem->Config->Accounts)
-				{
-					NftToComboBoxString->AddOption(Entry.WalletAddress.ToUpper());
-				}
 				NftToComboBoxString->SetSelectedIndex(0);
 			}
 		}
@@ -396,7 +384,7 @@ void UEktishafUI::OnNftContinueButtonClicked()
 			ShowLoading();
 			FString To = NftToComboBoxStringBorder->GetVisibility() == ESlateVisibility::Visible ? NftToComboBoxString->GetSelectedOption() : NftSendToAccountEditableTextBox->GetText().ToString();
 			TArray<TSharedPtr<FJsonValue>> Args;
-			UPayloadBuilder::AddArrayItem(Args, Subsystem->CurrentAccount.WalletAddress.ToLower());
+			UPayloadBuilder::AddArrayItem(Args, Subsystem->CurrentAccount.Address.ToLower());
 			UPayloadBuilder::AddArrayItem(Args, To.ToLower());
 			UPayloadBuilder::AddArrayItem(Args, SelectedItem->Id);
 			UPayloadBuilder::AddArrayItem(Args, FCString::Atoi(*NftSendToAmountEditableTextBox->GetText().ToString()));
@@ -444,7 +432,7 @@ void UEktishafUI::Balance()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
-			Subsystem->Balance(Subsystem->CurrentNetwork.Rpc, Subsystem->CurrentAccount.WalletAddress, FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
+			Subsystem->Balance(Subsystem->CurrentNetwork.Rpc, Subsystem->CurrentAccount.Address, FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
 				if (success && jsonObject.IsValid())
 				{

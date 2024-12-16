@@ -50,7 +50,7 @@ struct EKTISHAF_API FEktishafAccount
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Ektishaf|Blockchain|Account")
-	FString WalletAddress;
+	FString Address;
 
 	UPROPERTY(EditAnywhere, Category = "Ektishaf|Blockchain|Account")
 	FString Ticket;

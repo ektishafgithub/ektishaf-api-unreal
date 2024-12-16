@@ -229,7 +229,7 @@ void UEktishafSubsystem::K2_Register(const FString Password, const FEktishafOnRe
 
 			if (success && JsonObject.IsValid())
 			{
-				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Address = JsonObject->GetStringField(TEXT("address"));
 				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
@@ -248,7 +248,7 @@ void UEktishafSubsystem::K2_Login(const FString Ticket, const FString Password, 
 
 			if (success && JsonObject.IsValid())
 			{
-				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Address = JsonObject->GetStringField(TEXT("address"));
 				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
@@ -267,7 +267,7 @@ void UEktishafSubsystem::K2_External(const FString PrivateKey, const FString Pas
 
 			if (success && JsonObject.IsValid())
 			{
-				CurrentAccount.WalletAddress = JsonObject->GetStringField(TEXT("address"));
+				CurrentAccount.Address = JsonObject->GetStringField(TEXT("address"));
 				CurrentAccount.Ticket = JsonObject->GetStringField(TEXT("ticket"));
 			}
 
@@ -403,7 +403,7 @@ FEktishafAccount UEktishafSubsystem::GetAccount()
 
 void UEktishafSubsystem::SetAccount(const FString Address, const FString Ticket)
 {
-	CurrentAccount.WalletAddress = Address;
+	CurrentAccount.Address = Address;
 	CurrentAccount.Ticket = Ticket;
 }
 

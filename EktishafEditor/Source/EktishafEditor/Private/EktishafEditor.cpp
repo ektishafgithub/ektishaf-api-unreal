@@ -86,6 +86,7 @@ void FEktishafEditorModule::GenerateNewAccountsClicked()
 				UE_LOG(LogTemp, Warning, TEXT("Please specify an account password in Project Settings->Game->Ektishaf->Accounts->GenerateAccountsWithPassword to be used for new accounts."));
 				return;
 			}
+			UE_LOG(LogTemp, Warning, TEXT("Generating Accounts, Please Wait ..."));
 			Subsystem->Accounts(Subsystem->Config->MaxAccountsPerRequest, Subsystem->Config->GenerateAccountsWithPassword, FEktishafOnResponseFast::CreateLambda([this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
 				if (success && jsonObject.IsValid())
@@ -100,7 +101,7 @@ void FEktishafEditorModule::GenerateNewAccountsClicked()
 							FString ticket = jObject->GetStringField(TEXT("ticket"));
 
 							FEktishafAccount Account;
-							Account.WalletAddress = address.ToLower();
+							Account.Address = address.ToLower();
 							Account.Ticket = ticket;
 							Subsystem->Config->Accounts.Add(Account);
 							UE_LOG(LogTemp, Warning, TEXT("Generated Account %d: %s"), i + 1, *address);
@@ -110,6 +111,7 @@ void FEktishafEditorModule::GenerateNewAccountsClicked()
 						const FText Title = LOCTEXT("AccountsDialogInfoTitleKey", "New Accounts");
 						const FText Message = LOCTEXT("AccountsDialogInfoMessageKey", "New accounts are created successfully.");
 						EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
+						UE_LOG(LogTemp, Warning, TEXT("New accounts are created successfully."));
 					}
 				}
 			}));
