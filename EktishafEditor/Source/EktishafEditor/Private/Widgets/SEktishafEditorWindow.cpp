@@ -1,6 +1,6 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
-#include "../../Public/Widgets/SEktishafEditorWindow.h"
+#include "Widgets/SEktishafEditorWindow.h"
 #include <SlateOptMacros.h>
 #include <Delegates/DelegateSignatureImpl.inl>
 #include <HAL/FileManagerGeneric.h>
@@ -12,7 +12,6 @@
 #include <Engine/Engine.h>
 #include <Misc/MessageDialog.h>
 #include <Widgets/SWindow.h>
-//#include <../../../../../Plugins/Ektishaf/Source/Ektishaf/Public/EktishafSubsystem.h>
 #include "EktishafSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "LocalizedText"
@@ -196,37 +195,36 @@ FReply SEktishafEditorWindow::OnGenerateButtonClicked()
 	{
 		EktishafSubsystem->ABI(ABIEditableTextBox->GetText().ToString(), true, FEktishafOnResponseFast::CreateLambda([this](bool success, const TArray<uint8>, const FString content, TSharedPtr<FJsonObject> JsonObject) 
 		{
-				
-				if(success)
-				{
-					FString SavePathDir = FPaths::ProjectPluginsDir() + "Ektishaf/Source/Ektishaf/Public/Contracts";
-					FString SavePath = SavePathDir + "/" + FileNameEditableTextBox->GetText().ToString() + ".h";
+			if(success)
+			{
+				FString SavePathDir = FPaths::ProjectPluginsDir() + "Ektishaf/Source/Ektishaf/Public/Contracts";
+				FString SavePath = SavePathDir + "/" + FileNameEditableTextBox->GetText().ToString() + ".h";
 
-					IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-					if (!PlatformFile.DirectoryExists(*SavePathDir))
-					{
-						PlatformFile.CreateDirectory(*SavePathDir);
-					}
-					GenerateABI(content, ABIEditableTextBox->GetText().ToString(), ContractAddressEditableTextBox->GetText().ToString(), SavePath);
-
-					const FText Title = Localize("UserInfo", "User Information");
-					const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Contract interface saved at path: %s"), *SavePath));
-					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
-					if (UserSelection == EAppReturnType::Ok)
-					{
-						WindowManager::Get().GetWindow()->BringToFront();
-					}
-				}
-				else
+				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+				if (!PlatformFile.DirectoryExists(*SavePathDir))
 				{
-					const FText Title = Localize("UserInfo", "User Information");
-					const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Something went wrong: %s"), *content));
-					EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
-					if (UserSelection == EAppReturnType::Ok)
-					{
-						WindowManager::Get().GetWindow()->BringToFront();
-					}
+					PlatformFile.CreateDirectory(*SavePathDir);
 				}
+				GenerateABI(content, ABIEditableTextBox->GetText().ToString(), ContractAddressEditableTextBox->GetText().ToString(), SavePath);
+
+				const FText Title = Localize("UserInfo", "User Information");
+				const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Contract interface saved at path: %s"), *SavePath));
+				EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
+				if (UserSelection == EAppReturnType::Ok)
+				{
+					WindowManager::Get().GetWindow()->BringToFront();
+				}
+			}
+			else
+			{
+				const FText Title = Localize("UserInfo", "User Information");
+				const FText Message = Localize("UserInfoMessage", FString::Printf(TEXT("Something went wrong: %s"), *content));
+				EAppReturnType::Type UserSelection = FMessageDialog::Open(EAppMsgType::Ok, Message, Title);
+				if (UserSelection == EAppReturnType::Ok)
+				{
+					WindowManager::Get().GetWindow()->BringToFront();
+				}
+			}
 		}));
 	}
 	return FReply::Handled();

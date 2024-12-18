@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
-#include "NftItem.h"
+#include "UI/NftItem.h"
+#include "UI/EktishafUI.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/Image.h"
@@ -9,7 +10,6 @@
 #include "EktishafSubsystem.h"
 #include "Blueprint/AsyncTaskDownloadImage.h"
 #include "Engine/Texture2DDynamic.h"
-#include "EktishafUI.h"
 
 void UNftItem::Init(UEktishafUI* Ref, int _Id, int _Amount, FString MetadataUri)
 {

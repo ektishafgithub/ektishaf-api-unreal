@@ -4,7 +4,7 @@
 
 #include "Subsystems/EngineSubsystem.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
-#include "../Settings/BlockchainSettings.h"
+#include "Settings/BlockchainSettings.h"
 
 #include "EktishafSubsystem.generated.h"
 

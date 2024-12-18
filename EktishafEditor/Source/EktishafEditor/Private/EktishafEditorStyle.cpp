@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #include "EktishafEditorStyle.h"
 #include "Styling/SlateStyleRegistry.h"

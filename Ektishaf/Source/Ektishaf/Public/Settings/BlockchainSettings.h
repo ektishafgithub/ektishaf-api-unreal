@@ -10,19 +10,22 @@
 const FString ApiService = "https://api.ektishaf.com";
 const FString ApiVersion = "v1";
 
-UCLASS(config=Game, defaultConfig, meta=(DisplayName = "Ektishaf"))
+UCLASS(config=Game, defaultConfig, meta=(DisplayName = "Ektishaf Blockchain Settings"))
 class EKTISHAF_API UBlockchainSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
+	UBlockchainSettings();
+	static const UBlockchainSettings* GetBlockchainSettings();
+
 	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "A list of EVM compatible networks to be used for blockchain communication."))
 	TArray<FEktishafNetwork> Networks;
 
 	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "A list of accounts to be used for development purposes. To generate, please click Ektishaf->Generate New Accounts."))
 	TArray<FEktishafAccount> Accounts;
 
-	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ClampMin="1", ClampMax="5", UIMin="1", UIMax="5", ToolTip = "How many accounts to create when a request is made from Ektishaf->Generate New Accounts."))
+	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ClampMin="1", ClampMax="5", UIMin="1", UIMax="5", ToolTip = "How many new accounts to create when a request is made to Ektishaf->Generate New Accounts."))
 	int MaxAccountsPerRequest;
 
 	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta=(ToolTip = "When a request is made to create new accounts, this password will be used for all of them. Make sure to modify (if needed) and remember this before Generate New Accounts."))
@@ -37,15 +40,6 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = Blockchain, meta = (ToolTip = "Shows or hides logs."))
 	bool ShowLogs;
 
-	UBlockchainSettings();
-
-	static const UBlockchainSettings* GetBlockchainSettings();
-
-private:
-	UFUNCTION(BlueprintCallable, Category = Blockchain)
-	FString GetUrl(const FString& api = "");
-
-public:
 	UFUNCTION(BlueprintCallable, Category = Blockchain)
 	FEktishafNetwork GetNetwork(const FString& ChainId);
 
@@ -53,8 +47,12 @@ public:
 	FEktishafAccount GetAccount(const FString& Address);
 
 	UFUNCTION(BlueprintCallable, Category = Blockchain)
-	TArray<FString> GetMetadataUris(const TArray<int> Ids);
+	TArray<FString> GetMetadataUris(const TArray<int>& Ids);
 
 	UFUNCTION(BlueprintCallable, Category = Blockchain)
-	FString Op(EServOp servOp = EServOp::None);
+	FString Op(const EServOp& servOp = EServOp::None);
+
+private:
+	UFUNCTION(BlueprintCallable, Category = Blockchain)
+	FString GetUrl(const FString& api = "");
 };

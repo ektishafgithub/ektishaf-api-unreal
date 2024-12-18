@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Ektishaf.  All Rights Reserved. <https://www.ektishaf.com>
+// Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
 #include "EktishafEditor.h"
 #include "EktishafEditorStyle.h"
@@ -10,7 +10,7 @@
 #include "ToolMenus.h"
 #include "WindowManager.h"
 #include "EktishafSubsystem.h"
-#include "../../../../Ektishaf/Source/Ektishaf/Settings/BlockchainSettings.h"
+#include "Settings/BlockchainSettings.h"
 
 #define LOCTEXT_NAMESPACE "FEktishafEditorModule"
 

@@ -3,7 +3,7 @@
 #include "EktishafSubsystem.h"
 #include "PayloadBuilder.h"
 #include "Contracts/EktishafNftCollection.h"
-#include "../Widget/NftItem.h"
+#include "UI/NftItem.h"
 
 void UEktishafSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {

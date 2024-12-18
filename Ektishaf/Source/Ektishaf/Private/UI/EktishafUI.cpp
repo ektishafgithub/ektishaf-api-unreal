@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Ektishaf. All Rights Reserved. <https://www.ektishaf.com>
 
-#include "EktishafUI.h"
+#include "UI/EktishafUI.h"
+#include "UI/NftItem.h"
 #include "Engine/Engine.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -11,8 +12,7 @@
 #include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
 #include "EktishafSubsystem.h"
-#include "NftItem.h"
-#include "../Settings/BlockchainSettings.h"
+#include "Settings/BlockchainSettings.h"
 #include "PayloadBuilder.h"
 #include "Contracts/EktishafNftCollection.h"
 
