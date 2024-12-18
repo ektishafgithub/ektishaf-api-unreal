@@ -195,6 +195,8 @@ void UEktishafUI::OnRegisterSubmitButtonClicked()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
+			if(!Subsystem->Config->IsValidNetwork(Subsystem->CurrentNetwork)) return;
+
 			ShowLoading();
 			Subsystem->Register(RegisterPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{
@@ -232,6 +234,8 @@ void UEktishafUI::OnLoginSubmitButtonClicked()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
+			if (!Subsystem->Config->IsValidNetwork(Subsystem->CurrentNetwork)) return;
+
 			FEktishafAccount Account = Subsystem->Config->GetAccount(LoginComboBoxString->GetSelectedOption());
 			ShowLoading();
 			Subsystem->Login(Account.Ticket, LoginPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
@@ -270,6 +274,8 @@ void UEktishafUI::OnImportSubmitButtonClicked()
 	{
 		if (UEktishafSubsystem* Subsystem = GEngine->GetEngineSubsystem<UEktishafSubsystem>())
 		{
+			if (!Subsystem->Config->IsValidNetwork(Subsystem->CurrentNetwork)) return;
+
 			ShowLoading();
 			Subsystem->External(ImportPrivateKeyEditableTextBox->GetText().ToString(), ImportPasswordEditableTextBox->GetText().ToString(), FEktishafOnResponseFast::CreateWeakLambda(this, [this, Subsystem](bool success, const TArray<uint8> bytes, const FString content, TSharedPtr<FJsonObject> jsonObject)
 			{

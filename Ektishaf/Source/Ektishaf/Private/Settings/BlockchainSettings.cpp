@@ -16,16 +16,37 @@ const UBlockchainSettings* UBlockchainSettings::GetBlockchainSettings()
 	return GetDefault<UBlockchainSettings>();
 }
 
-FEktishafNetwork UBlockchainSettings::GetNetwork(const FString& ChainId)
+bool UBlockchainSettings::HasAnyNetwork()
 {
 	if (Networks.Num() <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to obtain networks from Project Settings->Game->Ektishaf->Blockchain->Networks"));
+		UE_LOG(LogTemp, Warning, TEXT("No network found in Project Settings->Game->Ektishaf Blockchain Settings->Networks, please add at least one network."));
+		return false;
+	}
+	return true;
+}
+
+bool UBlockchainSettings::IsValidNetwork(const FEktishafNetwork& Network)
+{
+	if (Network.Rpc.IsEmpty() || Network.ChainId.IsEmpty() || Network.CurrencySymbol.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Specified network is not a valid network, make sure it has at least Rpc, ChainId and CurrencySymbol information."));
+		return false;
+	}
+	return true;
+}
+
+FEktishafNetwork UBlockchainSettings::GetNetwork(const FString& ChainId)
+{
+	if (!HasAnyNetwork())
+	{
 		return FEktishafNetwork();
 	}
 
 	for(const FEktishafNetwork& Network : Networks)
 	{
+		if(!IsValidNetwork(Network)) continue;
+
 		if (Network.ChainId.ToUpper().Equals(ChainId.ToUpper()))
 		{
 			return Network;

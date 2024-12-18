@@ -10,7 +10,10 @@ void UEktishafSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	Config = GetMutableDefault<UBlockchainSettings>();
-	CurrentNetwork = Config->Networks[0];
+	if(Config->HasAnyNetwork())
+	{
+		CurrentNetwork = Config->Networks[0];
+	}
 	Log(FString::Printf(TEXT("EktishafSubsystem initialized successfully.")));
 	Host(nullptr);
 }
